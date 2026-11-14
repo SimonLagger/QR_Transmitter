@@ -83,24 +83,35 @@ def run(
     header, chunks = split_file(file_path, chunk_size, compress)
     transfer_id = secrets.randbits(32)
     frames = build_frames(header, chunks, transfer_id, header_every)
-    try:
-        images = [render_qr(text, ec=ec, box_size=1) for text, _, _ in frames]
-    except DataOverflowError as exc:
-        raise ValueError(
-            "A frame exceeds QR capacity; reduce --chunk-size or lower --ec"
-        ) from exc
     seconds_per_loop = len(frames) / fps
     print(
         f"Transfer {transfer_id:08x}: {len(frames)} frames, "
-        f"estimated {seconds_per_loop:.1f} seconds per loop"
+        f"estimated {seconds_per_loop:.1f} seconds per loop. "
+        "Preparing the first QR code...",
+        flush=True,
     )
     delay_ms = max(1, round(1000 / fps))
     paused = False
     loop_number = 0
     frame_number = 0
+    header_text = frames[0][0]
+    header_image: np.ndarray | None = None
     try:
         while loops == 0 or loop_number < loops:
-            image = images[frame_number]
+            text = frames[frame_number][0]
+            if text == header_text and header_image is not None:
+                image = header_image
+            else:
+                try:
+                    image = render_qr(
+                        text, ec=ec, box_size=1, verify_readability=False
+                    )
+                except DataOverflowError as exc:
+                    raise ValueError(
+                        "A frame exceeds QR capacity; reduce --chunk-size or lower --ec"
+                    ) from exc
+                if text == header_text:
+                    header_image = image
             if not paused:
                 display = _display_image(
                     image, scale, fullscreen,

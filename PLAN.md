@@ -148,7 +148,7 @@ python -m qrxfer.tx FILE [--chunk-size 600] [--ec M] [--fps 4]
 ```
 
 - Build header and chunks, build frame sequence: `HEADER, D0..D(k-1)` repeated, with extra HEADER every `--header-every` DATA frames.
-- Pre-render all QR images once before the loop (no per-frame generation in the loop).
+- Render the first QR immediately and keep memory bounded for large transfers; cache and reuse the HEADER image instead of pre-rendering every DATA image.
 - Display with OpenCV window (`cv2.imshow`), image scaled with nearest-neighbor, centered on a white canvas. Overlay is **outside** the QR area: text line with `transfer_id`, `frame i/n`, `loop L`. The overlay must not touch the QR or its quiet zone.
 - Keys: `q`/`ESC` quit, `space` pause.
 - `--loops 0` means infinite.

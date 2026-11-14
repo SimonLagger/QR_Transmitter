@@ -17,16 +17,24 @@ _ERROR_CORRECTION = {
 
 
 def render_qr(
-    text: str, ec: str = "M", box_size: int = 4, border: int = 4
+    text: str,
+    ec: str = "M",
+    box_size: int = 4,
+    border: int = 4,
+    verify_readability: bool = True,
 ) -> np.ndarray:
-    """Render text as a grayscale uint8 QR image with a quiet zone."""
+    """Render a QR image, optionally checking dense codes with OpenCV."""
     level = _ERROR_CORRECTION.get(ec.upper())
     if level is None:
         raise ValueError("ec must be one of L, M, Q, or H")
     if box_size <= 0 or border < 4:
         raise ValueError("box_size must be positive and border must be at least 4")
-    detector = cv2.QRCodeDetector()
-    mask_patterns = (None, 0, 7, 2, 3, 4, 5, 6, 1)
+    detector = cv2.QRCodeDetector() if verify_readability else None
+    mask_patterns = (
+        (None, 0, 7, 2, 3, 4, 5, 6, 1)
+        if verify_readability
+        else (0,)
+    )
     selected_image: np.ndarray | None = None
     for mask_pattern in mask_patterns:
         code = qrcode.QRCode(
@@ -43,7 +51,7 @@ def render_qr(
             wrapped_image = wrapped_image.get_image()
         image = np.asarray(wrapped_image.convert("L"), dtype=np.uint8)
         selected_image = image
-        if code.version < 15:
+        if not verify_readability or code.version < 15:
             break
         # OpenCV can miss valid high-version codes with particular QR masks.
         probe = image

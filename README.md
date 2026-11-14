@@ -72,6 +72,11 @@ The transmitter accepts `--compress`, `--loops N` (`0` means repeat forever),
 transfer. The `qrxfer-tx` and `qrxfer-rx` commands are also available after
 installing the package.
 
+The transmitter displays the first QR promptly and renders later frames as
+needed, so large files do not need thousands of QR images preloaded in memory.
+The estimated time is for one full loop; the default continuous mode repeats
+that loop until stopped.
+
 ## Protocol summary
 
 Each QR contains unpadded URL-safe Base64 text for a binary frame. Frame

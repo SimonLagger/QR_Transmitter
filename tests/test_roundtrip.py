@@ -36,3 +36,13 @@ def test_qr_decode_with_image_degradation(transform: str) -> None:
             image, None, fx=0.7, fy=0.7, interpolation=cv2.INTER_AREA
         )
     assert text in decode_qr(image)
+
+
+def test_fast_render_skips_opencv_readability_probes(monkeypatch) -> None:
+    """On-demand TX rendering does not start a slow detector for each frame."""
+    def fail_detector():
+        raise AssertionError("fast rendering must not run OpenCV readability probes")
+
+    monkeypatch.setattr(cv2, "QRCodeDetector", fail_detector)
+    image = render_qr("fast frame", verify_readability=False)
+    assert image.dtype == np.uint8 and image.ndim == 2
