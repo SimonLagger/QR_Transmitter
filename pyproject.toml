@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qrxfer"
+version = "0.1.0"
+description = "One-way file transfer over an optical QR-code channel"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "qrcode[pil]>=7.4",
+    "opencv-python>=4.8",
+    "numpy>=1.24",
+    "mss>=9.0",
+]
+
+[project.scripts]
+qrxfer-tx = "qrxfer.tx:main"
+qrxfer-rx = "qrxfer.rx:main"
+qrxfer = "qrxfer.gui:main"
+
+[tool.setuptools.packages.find]
+include = ["qrxfer*"]
